@@ -1,7 +1,10 @@
 import express from "express";
 import mercadopago from "mercadopago";
+import cors from "cors";
 
 const app = express();
+
+app.use(cors());
 app.use(express.json());
 
 mercadopago.configurations.setAccessToken("TEST-8792764793047739-021521-2c4119148632c498853bdd52b6582929-98956509");
@@ -27,9 +30,8 @@ app.post("/criar-pix", async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log("Servidor rodando na porta 3000");
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log("Servidor rodando 🚀");
 });
-
-
-
