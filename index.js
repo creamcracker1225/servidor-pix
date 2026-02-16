@@ -1,19 +1,37 @@
 import express from "express";
-import mercadopago from "mercadopago";
 import cors from "cors";
+import mercadopago from "mercadopago";
 
 const app = express();
-
-app.use(cors());
 app.use(express.json());
+app.use(cors());
 
-mercadopago.configurations.setAccessToken("APP_USR-8792764793047739-021523-d3f366e01d1f05bdab52560161304b9d-98956509");
+mercadopago.configure({
+  access_token: process.env.MP_ACCESS_TOKEN,
+});
 
 app.post("/criar-pix", async (req, res) => {
   try {
+    const { item } = req.body;
+
+    let valor = 0;
+    let descricao = "";
+
+    // 🔹 9 itens de R$2,00
+    if (item >= 1 && item <= 9) {
+      valor = 2.00;
+      descricao = `Consulta ${item}`;
+    }
+
+    // 🔹 Leitura completa
+    if (item === 99) {
+      valor = 16.00;
+      descricao = "Leitura Completa";
+    }
+
     const pagamento = await mercadopago.payment.create({
-      transaction_amount: 10,
-      description: "Leitura Espiritual",
+      transaction_amount: valor,
+      description: descricao,
       payment_method_id: "pix",
       payer: {
         email: "cliente@email.com"
@@ -22,16 +40,16 @@ app.post("/criar-pix", async (req, res) => {
 
     res.json({
       qr_code: pagamento.body.point_of_interaction.transaction_data.qr_code,
-      qr_code_base64: pagamento.body.point_of_interaction.transaction_data.qr_code_base64
+      qr_code_base64:
+        pagamento.body.point_of_interaction.transaction_data.qr_code_base64
     });
 
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.log(error);
+    res.status(500).json({ erro: "Erro ao criar pagamento" });
   }
 });
 
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log("Servidor rodando 🚀");
+app.listen(3000, () => {
+  console.log("Servidor rodando na porta 3000");
 });
